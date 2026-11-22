@@ -1,0 +1,99 @@
+@baseUrl = http://localhost:8000
+
+# Archivo autocontenido: captura los IDs reales de cada respuesta.
+# No depende de que categoria 1/producto 1 existan ni del orden respecto de categorias.http.
+
+### 1. Crear categoría para relacionar
+# @name crearCategoriaCafe
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Cafetería REST TP6",
+  "descripcion": "Productos vinculados con café"
+}
+
+### 2. Crear segunda categoría
+# @name crearCategoriaDestacados
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Destacados REST TP6",
+  "descripcion": "Productos destacados de Food Store"
+}
+
+### 3. Crear producto - imagen_url es list[str]
+# @name crearProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Café molido REST TP6",
+  "descripcion": "Paquete de 500 g",
+  "precio_base": "8500",
+  "imagen_url": [
+    "https://example.com/cafe-frente.jpg",
+    "https://example.com/cafe-dorso.jpg"
+  ],
+  "disponible": true
+}
+
+### 4. Listar productos
+GET {{baseUrl}}/productos/
+
+### 5. Consultar producto creado
+GET {{baseUrl}}/productos/{{crearProducto.response.body.$.id}}
+
+### 6. Editar producto creado
+PUT {{baseUrl}}/productos/{{crearProducto.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Café molido premium REST TP6",
+  "descripcion": "Paquete de 500 g - tueste medio",
+  "precio_base": "9200",
+  "imagen_url": [
+    "https://example.com/cafe-premium.jpg"
+  ],
+  "disponible": true
+}
+
+### 7. Crear relación ProductoCategoria
+POST {{baseUrl}}/producto-categorias/
+Content-Type: application/json
+
+{
+  "producto_id": {{crearProducto.response.body.$.id}},
+  "categoria_id": {{crearCategoriaCafe.response.body.$.id}}
+}
+
+### 8. Listar relaciones
+GET {{baseUrl}}/producto-categorias/
+
+### 9. Consultar relación creada
+GET {{baseUrl}}/producto-categorias/{{crearProducto.response.body.$.id}}/{{crearCategoriaCafe.response.body.$.id}}
+
+### 10. Editar relación: mover producto a segunda categoría
+PUT {{baseUrl}}/producto-categorias/{{crearProducto.response.body.$.id}}/{{crearCategoriaCafe.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "producto_id": {{crearProducto.response.body.$.id}},
+  "categoria_id": {{crearCategoriaDestacados.response.body.$.id}}
+}
+
+### 11. Eliminar relación actualizada
+DELETE {{baseUrl}}/producto-categorias/{{crearProducto.response.body.$.id}}/{{crearCategoriaDestacados.response.body.$.id}}
+
+### 12. Eliminar producto
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.$.id}}
+
+### 13. Producto eliminado - 404
+GET {{baseUrl}}/productos/{{crearProducto.response.body.$.id}}
+
+### 14. Limpiar primera categoría creada por este archivo
+DELETE {{baseUrl}}/categorias/{{crearCategoriaCafe.response.body.$.id}}
+
+### 15. Limpiar segunda categoría creada por este archivo
+DELETE {{baseUrl}}/categorias/{{crearCategoriaDestacados.response.body.$.id}}

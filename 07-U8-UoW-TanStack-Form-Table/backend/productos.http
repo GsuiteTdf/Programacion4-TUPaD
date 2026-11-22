@@ -1,0 +1,84 @@
+@baseUrl = http://localhost:8000
+
+### 1. Crear categoría para relación
+# @name crearCategoriaProducto
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Categoría producto U8",
+  "descripcion": "Pruebas"
+}
+
+### 2. Crear producto
+# @name crearProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Ravioles U8",
+  "descripcion": "Producto de prueba",
+  "precio_base": 1250.50,
+  "imagenes_url": ["https://example.com/ravioles.jpg"],
+  "disponible": true
+}
+
+### 3. Listar productos
+GET {{baseUrl}}/productos/
+
+### 4. Obtener producto
+GET {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+
+### 5. Editar producto
+PUT {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Ravioles premium U8",
+  "descripcion": "Producto actualizado",
+  "precio_base": 1400,
+  "imagenes_url": [],
+  "disponible": false
+}
+
+### 6. Precio negativo -> 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto inválido",
+  "descripcion": "",
+  "precio_base": -1,
+  "imagenes_url": [],
+  "disponible": true
+}
+
+### 7. Asociar categoría
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoriaProducto.response.body.id}},
+  "es_principal": true
+}
+
+### 8. Asociación duplicada -> 409
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoriaProducto.response.body.id}},
+  "es_principal": false
+}
+
+### 9. Listar categorías del producto
+GET {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+
+### 10. Quitar asociación
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias/{{crearCategoriaProducto.response.body.id}}
+
+### 11. Eliminar producto
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+
+### 12. Eliminar categoría
+DELETE {{baseUrl}}/categorias/{{crearCategoriaProducto.response.body.id}}

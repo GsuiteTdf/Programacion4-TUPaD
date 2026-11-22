@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:8000
+
+### 1. Crear ingrediente
+# @name crearIngrediente
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{
+  "nombre": "Albahaca U8"
+}
+
+### 2. Listar
+GET {{baseUrl}}/ingredientes
+
+### 3. Obtener
+GET {{baseUrl}}/ingredientes/{{crearIngrediente.response.body.id}}
+
+### 4. Editar
+PUT {{baseUrl}}/ingredientes/{{crearIngrediente.response.body.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Albahaca fresca U8"
+}
+
+### 5. Vacío -> 422
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{
+  "nombre": "   "
+}
+
+### 6. Eliminar
+DELETE {{baseUrl}}/ingredientes/{{crearIngrediente.response.body.id}}
+
+### 7. Inexistente -> 404
+GET {{baseUrl}}/ingredientes/999999

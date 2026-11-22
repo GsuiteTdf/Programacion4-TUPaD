@@ -1,0 +1,137 @@
+@baseUrl = http://localhost:8000
+@adminEmail = admin@foodstore.com
+@adminPassword = Admin123!
+@userPassword = Usuario123!
+
+# REST Client guarda la cookie access_token que envía el servidor y la reenvía
+# en las peticiones siguientes, como hace el navegador.
+# Requiere haber ejecutado antes: python seed.py
+# Se puede ejecutar más de una vez: cada corrida registra un email nuevo.
+
+### 1. Registro público -> 201 (rol user)
+# @name registerUser
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Usuario",
+  "apellido": "U9",
+  "email": "usuario.{{$timestamp}}@example.com",
+  "celular": "3515551234",
+  "password": "{{userPassword}}"
+}
+
+### 2. Email repetido -> 409
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Otro",
+  "apellido": "Usuario",
+  "email": "{{registerUser.response.body.email}}",
+  "password": "{{userPassword}}"
+}
+
+### 3. Email inválido y contraseña corta -> 422
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "nombre": "Mal",
+  "apellido": "Dato",
+  "email": "no-es-un-email",
+  "password": "123"
+}
+
+### 4. Contraseña incorrecta -> 401
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{registerUser.response.body.email}}&password=Incorrecta1
+
+### 5. Login user -> 200 y Set-Cookie access_token (HttpOnly)
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{registerUser.response.body.email}}&password={{userPassword}}
+
+### 6. Perfil autenticado -> 200 con roles vigentes
+GET {{baseUrl}}/api/v1/auth/me
+
+### 7. User puede leer categorías -> 200
+GET {{baseUrl}}/categorias/
+
+### 8. User NO puede escribir categorías -> 403
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Solo Admin U9",
+  "descripcion": "Debe devolver 403"
+}
+
+### 9. User NO puede administrar usuarios -> 403
+GET {{baseUrl}}/api/v1/auth/admin/usuarios
+
+### 10. Catálogo de solo lectura: GET -> 200
+GET {{baseUrl}}/api/v1/catalogos/roles
+
+### 11. Catálogo de solo lectura: POST -> 405
+POST {{baseUrl}}/api/v1/catalogos/roles
+Content-Type: application/json
+
+{
+  "nombre": "superadmin"
+}
+
+### 12. Logout -> 204 y Set-Cookie que borra la cookie
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 13. Sin cookie: /me -> 401
+GET {{baseUrl}}/api/v1/auth/me
+
+### 14. Login admin -> 200
+# @name adminLogin
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 15. Admin crea categoría -> 201
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Seguridad U9 {{$timestamp}}",
+  "descripcion": "Creada por admin"
+}
+
+### 16. Admin lista usuarios (incluye desactivados) -> 200
+GET {{baseUrl}}/api/v1/auth/admin/usuarios
+
+### 17. Admin no puede desactivarse a sí mismo -> 400
+POST {{baseUrl}}/api/v1/auth/admin/usuarios/{{adminLogin.response.body.id}}/desactivar
+
+### 18. Desactivar usuario -> 200 (completa deleted_at)
+POST {{baseUrl}}/api/v1/auth/admin/usuarios/{{registerUser.response.body.id}}/desactivar
+
+### 19. Cerrar la sesión del admin -> 204
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 20. Usuario desactivado intenta iniciar sesión -> 400 "Cuenta de usuario desactivada"
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{registerUser.response.body.email}}&password={{userPassword}}
+
+### 21. Login admin otra vez -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 22. Reactivar usuario -> 200 (deleted_at vuelve a nulo)
+POST {{baseUrl}}/api/v1/auth/admin/usuarios/{{registerUser.response.body.id}}/activar
+
+### 23. Usuario inexistente -> 404
+POST {{baseUrl}}/api/v1/auth/admin/usuarios/999999/activar

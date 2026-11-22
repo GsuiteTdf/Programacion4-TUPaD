@@ -1,0 +1,98 @@
+@baseUrl = http://localhost:8000
+@adminEmail = admin@foodstore.com
+@adminPassword = Admin123!
+@userPassword = Usuario123!
+
+# Reglas: cualquier usuario autenticado crea pedidos (usuario_id sale de la sesión);
+# cada user ve solo sus pedidos; cambiar el estado y borrar es solo para admin.
+# Se puede ejecutar más de una vez: cada corrida registra un comprador nuevo.
+
+### 1. Login admin para crear el producto
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 2. Producto del pedido -> 201
+# @name prodPedido
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{"nombre":"Producto Pedido U9 {{$timestamp}}","descripcion":"","precio_base":100.0,"imagenes_url":[],"disponible":true}
+
+### 3. Cerrar la sesión del admin -> 204
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 4. Registrar comprador -> 201
+# @name comprador
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{"nombre":"Comprador","apellido":"U9","email":"comprador.{{$timestamp}}@example.com","password":"{{userPassword}}"}
+
+### 5. Login del comprador (rol user) -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{comprador.response.body.email}}&password={{userPassword}}
+
+### 6. Crear pedido -> 201 (usuario_id se toma de la sesión, no del cuerpo)
+# @name pedido
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{"detalles":[{"producto_id":{{prodPedido.response.body.id}},"cantidad":2}]}
+
+### 7. Listar: el user ve solo sus pedidos -> 200
+GET {{baseUrl}}/pedidos
+
+### 8. Obtener su pedido -> 200
+GET {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+
+### 9. Pedido con producto inexistente -> 404 y rollback
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{"detalles":[{"producto_id":999999,"cantidad":1}]}
+
+### 10. Pedido sin detalles -> 422
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{"detalles":[]}
+
+### 11. El user no puede cambiar el estado -> 403
+PUT {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+Content-Type: application/json
+
+{"estado":"CONFIRMADO"}
+
+### 12. El user no puede borrar el pedido -> 403
+DELETE {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+
+### 13. Cerrar la sesión del comprador -> 204
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 14. Login admin -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 15. Admin actualiza el estado -> 200
+PUT {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+Content-Type: application/json
+
+{"estado":"EN_PREP"}
+
+### 16. Estado fuera del catálogo -> 422
+PUT {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+Content-Type: application/json
+
+{"estado":"DESCONOCIDO"}
+
+### 17. Admin realiza el borrado lógico -> 204
+DELETE {{baseUrl}}/pedidos/{{pedido.response.body.id}}
+
+### 18. Pedido eliminado -> 404
+GET {{baseUrl}}/pedidos/{{pedido.response.body.id}}

@@ -1,0 +1,38 @@
+@baseUrl = http://localhost:8000
+
+### 1. Crear categoría
+# @name crearCategoria
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Pastas U8",
+  "descripcion": "Categoría para pruebas de Unidad 8"
+}
+
+### 2. Listar
+GET {{baseUrl}}/categorias/
+
+### 3. Editar
+PUT {{baseUrl}}/categorias/{{crearCategoria.response.body.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Pastas artesanales U8",
+  "descripcion": "Actualizada"
+}
+
+### 4. Duplicado -> 409 (regla opcional implementada)
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "  PASTAS ARTESANALES U8  ",
+  "descripcion": "Duplicada"
+}
+
+### 5. Eliminar
+DELETE {{baseUrl}}/categorias/{{crearCategoria.response.body.id}}
+
+### 6. Inexistente -> 404
+GET {{baseUrl}}/categorias/999999

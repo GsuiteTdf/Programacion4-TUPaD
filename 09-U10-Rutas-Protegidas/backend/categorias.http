@@ -1,0 +1,51 @@
+@baseUrl = http://localhost:8000
+@adminEmail = admin@foodstore.com
+@adminPassword = Admin123!
+
+### Login admin (REST Client conserva la cookie del host)
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### Crear
+# @name categoriaU9
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{"nombre":"Categoría U9 {{$timestamp}}","descripcion":"Prueba protegida"}
+
+### Listar
+GET {{baseUrl}}/categorias/
+
+### Obtener
+GET {{baseUrl}}/categorias/{{categoriaU9.response.body.id}}
+
+### Actualizar
+# @name categoriaEditada
+PUT {{baseUrl}}/categorias/{{categoriaU9.response.body.id}}
+Content-Type: application/json
+
+{"nombre":"Categoría U9 editada {{$timestamp}}","descripcion":"Actualizada"}
+
+### Nombre repetido (sin distinguir mayúsculas) -> 409
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{"nombre":"  {{categoriaEditada.response.body.nombre}}  ","descripcion":"Duplicada"}
+
+### Borrado lógico
+DELETE {{baseUrl}}/categorias/{{categoriaU9.response.body.id}}
+
+### Ya no aparece: 404
+GET {{baseUrl}}/categorias/{{categoriaU9.response.body.id}}
+
+### Se puede volver a crear el nombre de una categoría eliminada -> 201
+# @name categoriaRecreada
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{"nombre":"{{categoriaEditada.response.body.nombre}}","descripcion":"Recreada tras el borrado lógico"}
+
+### Limpieza -> 204
+DELETE {{baseUrl}}/categorias/{{categoriaRecreada.response.body.id}}

@@ -1,0 +1,36 @@
+package com.example.mi.primer.springboot.domain.model;
+
+import com.example.mi.primer.springboot.domain.base.Base;
+import com.example.mi.primer.springboot.domain.enums.Rol;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+@Getter
+@Setter
+@NoArgsConstructor
+@Entity
+@Table(name = "usuarios")
+public class Usuario extends Base {
+
+    private String nombre;
+    private String apellido;
+    private String email;
+    private String celular;
+    private String contrasena;
+
+    @Enumerated(EnumType.STRING)
+    private Rol rol;
+
+    @OneToMany(mappedBy = "usuario", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Pedido> pedidos = new ArrayList<>();
+}

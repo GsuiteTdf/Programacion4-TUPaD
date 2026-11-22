@@ -1,0 +1,102 @@
+@baseUrl = http://localhost:8000
+@adminEmail = admin@foodstore.com
+@adminPassword = Admin123!
+@userPassword = Usuario123!
+
+# CRUD de ingredientes para la feature ingredients/ del frontend de la Unidad 10.
+# Lectura: cualquier usuario autenticado. Escritura: solo admin.
+# Se puede ejecutar más de una vez: los nombres llevan {{$timestamp}}.
+
+### 1. Sin sesión -> 401
+GET {{baseUrl}}/ingredientes
+
+### 2. Login admin -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 3. Crear ingrediente -> 201
+# @name ingrediente
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{"nombre":"Albahaca {{$timestamp}}"}
+
+### 4. Listar -> 200
+GET {{baseUrl}}/ingredientes
+
+### 5. Obtener -> 200
+GET {{baseUrl}}/ingredientes/{{ingrediente.response.body.id}}
+
+### 6. Editar -> 200
+# @name ingredienteEditado
+PUT {{baseUrl}}/ingredientes/{{ingrediente.response.body.id}}
+Content-Type: application/json
+
+{"nombre":"Albahaca fresca {{$timestamp}}"}
+
+### 7. Nombre vacío o solo espacios -> 422
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{"nombre":"   "}
+
+### 8. Nombre repetido (sin distinguir mayúsculas) -> 409
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{"nombre":"  {{ingredienteEditado.response.body.nombre}}  "}
+
+### 9. Cerrar la sesión del admin -> 204
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 10. Registrar un user -> 201
+# @name usuario
+POST {{baseUrl}}/api/v1/auth/register
+Content-Type: application/json
+
+{"nombre":"Lector","apellido":"Ingredientes","email":"lector.{{$timestamp}}@example.com","password":"{{userPassword}}"}
+
+### 11. Login user -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{usuario.response.body.email}}&password={{userPassword}}
+
+### 12. El user puede leer -> 200
+GET {{baseUrl}}/ingredientes
+
+### 13. El user no puede crear -> 403
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{"nombre":"No permitido"}
+
+### 14. El user no puede borrar -> 403
+DELETE {{baseUrl}}/ingredientes/{{ingrediente.response.body.id}}
+
+### 15. Cerrar la sesión del user -> 204
+POST {{baseUrl}}/api/v1/auth/logout
+
+### 16. Login admin -> 200
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### 17. Borrado lógico -> 204
+DELETE {{baseUrl}}/ingredientes/{{ingrediente.response.body.id}}
+
+### 18. Ingrediente eliminado -> 404
+GET {{baseUrl}}/ingredientes/{{ingrediente.response.body.id}}
+
+### 19. Se puede volver a crear el nombre de un ingrediente eliminado -> 201
+# @name recreado
+POST {{baseUrl}}/ingredientes
+Content-Type: application/json
+
+{"nombre":"{{ingredienteEditado.response.body.nombre}}"}
+
+### 20. Limpieza -> 204
+DELETE {{baseUrl}}/ingredientes/{{recreado.response.body.id}}

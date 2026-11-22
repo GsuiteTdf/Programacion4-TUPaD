@@ -1,0 +1,153 @@
+@baseUrl = http://127.0.0.1:8000
+
+### ==========================================
+### MÓDULO: PROVEEDORES - CASOS DE ÉXITO
+### ==========================================
+
+### 1. Listado inicial - 200
+GET {{baseUrl}}/proveedores/
+
+### 2. Crear proveedor 1 - 201
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "PROV-001",
+  "razon_social": "Distribuidora Centro",
+  "cuit": "30-12345678-9",
+  "email": "ventas@centro.com",
+  "telefono": "351-555-0101",
+  "activo": true
+}
+
+### 3. Crear proveedor 2 - 201
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "PROV-002",
+  "razon_social": "Alimentos del Norte",
+  "cuit": "30-98765432-1",
+  "email": "contacto@norte.com",
+  "telefono": "351-555-0202",
+  "activo": true
+}
+
+### 4. Listar con paginación - 200
+GET {{baseUrl}}/proveedores/?skip=0&limit=1
+
+### 5. Filtrar activos - 200
+GET {{baseUrl}}/proveedores/?activo=true
+
+### 6. Consultar proveedor por id - 200
+GET {{baseUrl}}/proveedores/1
+
+### 7. Actualizar proveedor - 200
+PUT {{baseUrl}}/proveedores/1
+Content-Type: application/json
+
+{
+  "codigo": "PROV-001",
+  "razon_social": "Distribuidora Centro Córdoba",
+  "cuit": "30-12345678-9",
+  "email": "administracion@centro.com",
+  "telefono": "351-555-0111",
+  "activo": true
+}
+
+### 8. Desactivar proveedor - 200
+PUT {{baseUrl}}/proveedores/1/desactivar
+
+### 9. Filtrar inactivos - 200
+GET {{baseUrl}}/proveedores/?activo=false
+
+### 10. Listar todos sin filtro activo - 200
+GET {{baseUrl}}/proveedores/?skip=0&limit=10
+
+### ==========================================
+### ERRORES DE NEGOCIO Y VALIDACIÓN
+### ==========================================
+
+### 11. Código duplicado - 409
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "PROV-002",
+  "razon_social": "Otro proveedor",
+  "cuit": "30-11111111-1"
+}
+
+### 12. Código vacío - 422
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "",
+  "razon_social": "Proveedor inválido",
+  "cuit": "30-22222222-2"
+}
+
+### 13. Razón social demasiado corta - 422
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "PROV-003",
+  "razon_social": "AB",
+  "cuit": "30-33333333-3"
+}
+
+### 14. CUIT demasiado corto - 422
+POST {{baseUrl}}/proveedores/
+Content-Type: application/json
+
+{
+  "codigo": "PROV-004",
+  "razon_social": "Proveedor CUIT inválido",
+  "cuit": "123"
+}
+
+### 15. Consultar id inexistente - 404
+GET {{baseUrl}}/proveedores/999
+
+### 16. Actualizar id inexistente - 404
+PUT {{baseUrl}}/proveedores/999
+Content-Type: application/json
+
+{
+  "codigo": "PROV-999",
+  "razon_social": "Proveedor inexistente",
+  "cuit": "30-99999999-9"
+}
+
+### 17. Actualizar usando código de otro proveedor - 409
+PUT {{baseUrl}}/proveedores/1
+Content-Type: application/json
+
+{
+  "codigo": "PROV-002",
+  "razon_social": "Conflicto de código",
+  "cuit": "30-12345678-9"
+}
+
+### 18. Desactivar nuevamente proveedor ya inactivo - 409
+PUT {{baseUrl}}/proveedores/1/desactivar
+
+### 19. Desactivar id inexistente - 404
+PUT {{baseUrl}}/proveedores/999/desactivar
+
+### 20. skip negativo - 422
+GET {{baseUrl}}/proveedores/?skip=-1
+
+### 21. limit cero - 422
+GET {{baseUrl}}/proveedores/?limit=0
+
+### 22. limit mayor a 50 - 422
+GET {{baseUrl}}/proveedores/?limit=51
+
+### 23. Id fuera del rango admitido por Path - 422
+GET {{baseUrl}}/proveedores/0
+
+### 24. Booleano inválido en Query - 422
+GET {{baseUrl}}/proveedores/?activo=valor_invalido

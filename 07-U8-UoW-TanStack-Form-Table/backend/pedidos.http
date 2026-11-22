@@ -1,0 +1,123 @@
+@baseUrl = http://localhost:8000
+
+### 1. Producto A para el pedido
+# @name productoA
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto pedido A U8",
+  "descripcion": "",
+  "precio_base": 100,
+  "imagenes_url": [],
+  "disponible": true
+}
+
+### 2. Producto B para el pedido
+# @name productoB
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto pedido B U8",
+  "descripcion": "",
+  "precio_base": 250.5,
+  "imagenes_url": [],
+  "disponible": true
+}
+
+### 3. Crear pedido con dos detalles -> 201
+# @name crearPedido
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "detalles": [
+    {"producto_id": {{productoA.response.body.id}}, "cantidad": 2},
+    {"producto_id": {{productoB.response.body.id}}, "cantidad": 1}
+  ]
+}
+
+### 4. Listar pedidos activos
+GET {{baseUrl}}/pedidos
+
+### 5. Obtener pedido con detalles
+GET {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+
+### 6. Actualizar estado
+PUT {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+Content-Type: application/json
+
+{
+  "estado": "CONFIRMADO"
+}
+
+### 7. Estado inválido -> 422
+PUT {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+Content-Type: application/json
+
+{
+  "estado": "DESCONOCIDO"
+}
+
+### 8. Pedido sin detalles -> 422
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "detalles": []
+}
+
+### 9. Cantidad menor que 1 -> 422
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "detalles": [
+    {"producto_id": {{productoA.response.body.id}}, "cantidad": 0}
+  ]
+}
+
+### 10. Producto repetido -> 422
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "detalles": [
+    {"producto_id": {{productoA.response.body.id}}, "cantidad": 1},
+    {"producto_id": {{productoA.response.body.id}}, "cantidad": 2}
+  ]
+}
+
+### 11. Producto inexistente -> 404 y rollback total
+POST {{baseUrl}}/pedidos
+Content-Type: application/json
+
+{
+  "detalles": [
+    {"producto_id": 999999, "cantidad": 1}
+  ]
+}
+
+### 12. Listado después del 404: no debe existir pedido parcial
+GET {{baseUrl}}/pedidos
+
+### 13. Borrado lógico -> 204
+DELETE {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+
+### 14. Pedido eliminado -> 404
+GET {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+
+### 15. Operar sobre eliminado -> 404
+PUT {{baseUrl}}/pedidos/{{crearPedido.response.body.id}}
+Content-Type: application/json
+
+{
+  "estado": "ENTREGADO"
+}
+
+### 16. Pedido inexistente -> 404
+GET {{baseUrl}}/pedidos/999999
+
+### 17. Eliminar un producto incluido en un pedido -> 409 (FK RESTRICT del UML)
+DELETE {{baseUrl}}/productos/{{productoA.response.body.id}}

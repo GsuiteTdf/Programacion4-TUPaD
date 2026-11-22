@@ -1,0 +1,44 @@
+@baseUrl = http://localhost:8000
+
+# Este archivo usa variables de respuesta para no depender de IDs fijos.
+# Ejecutar los requests en orden dentro de este archivo.
+
+### 1. Crear categoría
+# @name crearCategoria
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas REST TP6",
+  "descripcion": "Cafés, tés, jugos y otras bebidas"
+}
+
+### 2. Listar categorías
+GET {{baseUrl}}/categorias/
+
+### 3. Consultar categoría creada
+GET {{baseUrl}}/categorias/{{crearCategoria.response.body.$.id}}
+
+### 4. Editar categoría creada
+PUT {{baseUrl}}/categorias/{{crearCategoria.response.body.$.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas calientes REST TP6",
+  "descripcion": "Cafés, tés e infusiones"
+}
+
+### 5. Validación 422 - nombre vacío
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "   ",
+  "descripcion": "No debe crearse"
+}
+
+### 6. ID inexistente - 404
+GET {{baseUrl}}/categorias/99999
+
+### 7. Eliminar categoría creada
+DELETE {{baseUrl}}/categorias/{{crearCategoria.response.body.$.id}}

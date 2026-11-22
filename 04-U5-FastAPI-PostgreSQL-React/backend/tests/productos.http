@@ -1,0 +1,89 @@
+@baseUrl = http://localhost:8000
+
+### 1. Crear producto - 201
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Café molido",
+  "descripcion": "Paquete de 500 g",
+  "precio": 8500
+}
+
+### 2. Crear segundo producto - 201
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Té verde",
+  "descripcion": "Caja de 20 saquitos",
+  "precio": 4200
+}
+
+### 3. Listar productos - 200
+GET {{baseUrl}}/productos/
+
+### 4. Consultar producto existente - 200
+GET {{baseUrl}}/productos/1
+
+### 5. Actualizar producto - 200
+PUT {{baseUrl}}/productos/1
+Content-Type: application/json
+
+{
+  "nombre": "Café molido premium",
+  "descripcion": "Paquete de 500 g - tueste medio",
+  "precio": 9200
+}
+
+### 6. Nombre duplicado normalizado - 409
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "  TÉ VERDE  ",
+  "descripcion": "Intento duplicado",
+  "precio": 5000
+}
+
+### 7. Nombre vacío / solo espacios - 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "   ",
+  "descripcion": "Inválido",
+  "precio": 100
+}
+
+### 8. Precio negativo - 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto inválido",
+  "descripcion": "Precio negativo",
+  "precio": -1
+}
+
+### 9. ID inexistente - 404
+GET {{baseUrl}}/productos/99999
+
+### 10. Actualizar ID inexistente - 404
+PUT {{baseUrl}}/productos/99999
+Content-Type: application/json
+
+{
+  "nombre": "No existe",
+  "descripcion": "No debe persistirse",
+  "precio": 1000
+}
+
+### 11. Eliminar producto existente - 204
+DELETE {{baseUrl}}/productos/2
+
+### 12. Consultar producto eliminado - 404
+GET {{baseUrl}}/productos/2
+
+### 13. Eliminar ID inexistente - 404
+DELETE {{baseUrl}}/productos/99999

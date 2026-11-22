@@ -1,0 +1,116 @@
+@baseUrl = http://localhost:8000
+
+### 1. Crear categoría para las pruebas
+# @name crearCategoria
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "Bebidas",
+  "descripcion": "Bebidas frías y calientes"
+}
+
+### 2. Crear producto
+# @name crearProducto
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Café especial",
+  "descripcion": "Café molido de origen",
+  "precio_base": 8500,
+  "imagenes_url": [
+    "https://example.com/cafe-frente.jpg",
+    "https://example.com/cafe-dorso.jpg"
+  ],
+  "disponible": true
+}
+
+### 3. Listar productos
+GET {{baseUrl}}/productos/
+
+### 4. Consultar producto
+GET {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+
+### 5. Editar producto
+PUT {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+Content-Type: application/json
+
+{
+  "nombre": "Café especial premium",
+  "descripcion": "Café molido de origen, tueste medio",
+  "precio_base": 9200,
+  "imagenes_url": ["https://example.com/cafe-premium.jpg"],
+  "disponible": false
+}
+
+### 6. Asignar categoría al producto
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoria.response.body.id}}
+}
+
+### 7. Listar categorías del producto
+GET {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+
+### 8. Intentar asociar la misma categoría nuevamente - 409
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoria.response.body.id}}
+}
+
+### 9. Asociar una categoría inexistente - 404
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": 99999
+}
+
+### 10. Crear producto con precio negativo - 422
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{
+  "nombre": "Producto inválido",
+  "precio_base": -1
+}
+
+### 11. Crear categoría con nombre repetido - 409
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{
+  "nombre": "  bebidas  ",
+  "descripcion": "Duplicada"
+}
+
+### 12. Quitar asociación
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias/{{crearCategoria.response.body.id}}
+
+### 13. Quitar una asociación que ya no existe - 404
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias/{{crearCategoria.response.body.id}}
+
+### 14. Volver a asociar para probar el borrado con asociaciones
+POST {{baseUrl}}/productos/{{crearProducto.response.body.id}}/categorias
+Content-Type: application/json
+
+{
+  "categoria_id": {{crearCategoria.response.body.id}}
+}
+
+### 15. Eliminar producto que tiene una categoría asociada - 204
+DELETE {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+
+### 16. Consultar producto eliminado - 404
+GET {{baseUrl}}/productos/{{crearProducto.response.body.id}}
+
+### 17. Eliminar categoría de prueba - 204
+DELETE {{baseUrl}}/categorias/{{crearCategoria.response.body.id}}
+
+### 18. Consultar categoría eliminada - 404
+GET {{baseUrl}}/categorias/{{crearCategoria.response.body.id}}

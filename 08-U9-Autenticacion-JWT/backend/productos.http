@@ -1,0 +1,53 @@
+@baseUrl = http://localhost:8000
+@adminEmail = admin@foodstore.com
+@adminPassword = Admin123!
+
+### Login admin
+POST {{baseUrl}}/api/v1/auth/token
+Content-Type: application/x-www-form-urlencoded
+
+username={{adminEmail}}&password={{adminPassword}}
+
+### Crear categoría
+# @name cat
+POST {{baseUrl}}/categorias/
+Content-Type: application/json
+
+{"nombre":"Cat Producto {{$timestamp}}","descripcion":"U9"}
+
+### Crear producto
+# @name prod
+POST {{baseUrl}}/productos/
+Content-Type: application/json
+
+{"nombre":"Producto U9 {{$timestamp}}","descripcion":"Seguro","precio_base":1250.50,"imagenes_url":[],"disponible":true}
+
+### Asociar categoría (admin)
+POST {{baseUrl}}/productos/{{prod.response.body.id}}/categorias
+Content-Type: application/json
+
+{"categoria_id":{{cat.response.body.id}},"es_principal":true}
+
+### Listar categorías del producto (autenticado)
+GET {{baseUrl}}/productos/{{prod.response.body.id}}/categorias
+
+### Quitar asociación (admin)
+DELETE {{baseUrl}}/productos/{{prod.response.body.id}}/categorias/{{cat.response.body.id}}
+
+### Volver a asociar la categoría (admin) -> 201
+POST {{baseUrl}}/productos/{{prod.response.body.id}}/categorias
+Content-Type: application/json
+
+{"categoria_id":{{cat.response.body.id}},"es_principal":true}
+
+### El producto muestra sus categorías -> 200
+GET {{baseUrl}}/productos/{{prod.response.body.id}}
+
+### Borrado lógico del producto (también quita sus enlaces con categorías) -> 204
+DELETE {{baseUrl}}/productos/{{prod.response.body.id}}
+
+### Producto eliminado devuelve 404
+GET {{baseUrl}}/productos/{{prod.response.body.id}}
+
+### Borrado lógico de la categoría: ya no tiene productos activos -> 204
+DELETE {{baseUrl}}/categorias/{{cat.response.body.id}}
