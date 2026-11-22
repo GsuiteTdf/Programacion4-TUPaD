@@ -40,7 +40,7 @@ python -m venv .venv
 # Windows: .venv\Scripts\activate  ·  Linux / macOS: source .venv/bin/activate
 pip install -r requirements.txt
 copy .env.example .env     # Linux / macOS: cp .env.example .env
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload   # el módulo exacto se indica en el README de cada unidad
 ```
 
 ```bash
